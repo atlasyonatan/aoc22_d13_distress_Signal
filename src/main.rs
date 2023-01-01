@@ -5,7 +5,6 @@ use std::{
 };
 
 use itertools::Itertools;
-use std::cmp::Ordering;
 use std::str::FromStr;
 
 pub mod node;
