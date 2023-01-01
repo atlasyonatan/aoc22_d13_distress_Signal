@@ -1,9 +1,50 @@
-use std::str::FromStr;
+use std::{cmp::Ordering, str::FromStr};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Node<T> {
     Single(T),
     List(Vec<Node<T>>),
+}
+
+impl<T> Ord for Node<T>
+where
+    T: Copy + Ord,
+{
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self {
+            Node::Single(left_single) => match other {
+                Node::Single(right_single) => left_single.cmp(right_single),
+                Node::List(_) => Node::List(vec![Node::Single(*left_single)]).cmp(other),
+            },
+            Node::List(left_list) => match other {
+                Node::Single(right_single) => {
+                    self.cmp(&Node::List(vec![Node::Single(*right_single)]))
+                }
+                Node::List(right_list) => {
+                    for i in 0..left_list.len().min(right_list.len()) {
+                        match left_list[i].cmp(&right_list[i]) {
+                            Ordering::Equal => {
+                                continue;
+                            }
+                            ordering => {
+                                return ordering;
+                            }
+                        }
+                    }
+                    left_list.len().cmp(&right_list.len())
+                }
+            },
+        }
+    }
+}
+
+impl<T> PartialOrd for Node<T>
+where
+    T: Copy + Ord,
+{
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 impl<T: FromStr> FromStr for Node<T> {
